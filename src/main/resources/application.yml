@@ -1,0 +1,21 @@
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+      base-path: /manage
+  metrics:
+    use-global-registry: false
+    export:
+      cloudwatch:
+        namespace: Micrometer/test
+        enabled: true
+        batch-size: 20
+        step: 1s
+cloud:
+  aws:
+    stack:
+      auto: false
+    region:
+      auto: false
+      static: ap-northeast-1

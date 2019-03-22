@@ -18,9 +18,10 @@ ext {
 }
 
 dependencies {
-	implementation 'org.springframework.boot:spring-boot-starter-integration'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'
 	implementation 'org.springframework.cloud:spring-cloud-starter-aws'
+	implementation 'io.micrometer:micrometer-registry-cloudwatch'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
 
@@ -29,3 +30,19 @@ dependencyManagement {
 		mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
 	}
 }
+
+bootRun {
+	if ( project.hasProperty('jvmArgs') ) {
+		jvmArgs project.jvmArgs.split('\\s+')
+	}
+}
+
+bootJar {
+	launchScript()
+}
+
+task buildDeployZip(type: Zip) {
+	from bootJar
+	from 'src/dist'
+}
+build.dependsOn buildDeployZip
