@@ -5,6 +5,13 @@ management:
         include: "*"
       base-path: /manage
   metrics:
+    enable:
+      process: false
+      jdbc: false
+      logback: false
+      spring: false
+      tomcat: false
+      hikaricp: false
     use-global-registry: false
     export:
       cloudwatch:
