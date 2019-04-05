@@ -2,16 +2,26 @@ package com.b1a9idps.micrometercloudwatchsample.metrics;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.Collections;
 
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestTemplate;
 
 import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tags;
 
 @Component
 public class HeapUtilizationMetrics {
 
+    private final RestTemplate ec2RestTemplate;
+
     public HeapUtilizationMetrics(MeterRegistry registry) {
-        registry.gauge("jvm.memory.utilization", this, HeapUtilizationMetrics::invoke);
+        this.ec2RestTemplate = new RestTemplate();
+        registry.gauge(
+                "HeapUtilization",
+                Tags.concat(Collections.emptyList(), "InstanceId", getInstanceId()),
+                this,
+                HeapUtilizationMetrics::invoke);
     }
 
     private Double invoke() {
@@ -23,5 +33,9 @@ public class HeapUtilizationMetrics {
         BigDecimal result =
                 BigDecimal.valueOf(usedMemoryPercentage).setScale(1 , RoundingMode.HALF_UP);
         return result.doubleValue();
+    }
+
+    private String getInstanceId() {
+        return ec2RestTemplate.getForObject("http://169.254.169.254/latest/meta-data/instance-id", String.class);
     }
 }
