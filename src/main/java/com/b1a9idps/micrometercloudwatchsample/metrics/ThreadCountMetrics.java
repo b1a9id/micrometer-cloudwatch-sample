@@ -1,7 +1,7 @@
 package com.b1a9idps.micrometercloudwatchsample.metrics;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
+import java.lang.management.ManagementFactory;
+import java.lang.management.ThreadMXBean;
 import java.util.Collections;
 
 import org.springframework.stereotype.Component;
@@ -13,29 +13,23 @@ import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tags;
 
 @Component
-public class HeapUtilizationMetrics {
+public class ThreadCountMetrics {
     private final RestTemplate ec2RestTemplate;
     private final MetricsProps metricsProps;
 
-    public HeapUtilizationMetrics(MeterRegistry registry, MetricsProps metricsProps) {
+    public ThreadCountMetrics(MeterRegistry registry, MetricsProps metricsProps) {
         this.ec2RestTemplate = new RestTemplate();
         this.metricsProps = metricsProps;
         registry.gauge(
-                "HeapUtilization",
+                "ThreadCount",
                 Tags.concat(Collections.emptyList(), "InstanceId", getInstanceId()),
                 this,
-                HeapUtilizationMetrics::invoke);
+                ThreadCountMetrics::invoke);
     }
 
-    private Double invoke() {
-        Runtime runtime = Runtime.getRuntime();
-        long freeMemorySize = runtime.freeMemory() / 1024;
-        long totalMemorySize = runtime.totalMemory() / 1024;
-        long usedMemorySize = totalMemorySize - freeMemorySize;
-        double usedMemoryPercentage = usedMemorySize * 100 / (double) totalMemorySize;
-        BigDecimal result =
-                BigDecimal.valueOf(usedMemoryPercentage).setScale(1 , RoundingMode.HALF_UP);
-        return result.doubleValue();
+    private Integer invoke() {
+        ThreadMXBean threadBean = ManagementFactory.getThreadMXBean();
+        return threadBean.getThreadCount();
     }
 
     private String getInstanceId() {
