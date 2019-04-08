@@ -12,10 +12,12 @@ management:
       spring: false
       tomcat: false
       hikaricp: false
+      jvm: false
+      system: false
     use-global-registry: false
     export:
       cloudwatch:
-        namespace: Micrometer/test
+        namespace: Micrometer/test4
         enabled: true
         batch-size: 20
         step: 1s
