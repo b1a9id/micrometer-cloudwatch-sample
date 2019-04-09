@@ -5,24 +5,18 @@ import java.lang.management.MemoryMXBean;
 import java.util.Collections;
 
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestTemplate;
 
-import com.b1a9idps.micrometercloudwatchsample.metrics.props.MetricsProps;
+import com.amazonaws.util.EC2MetadataUtils;
 
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tags;
 
 @Component
 public class HeapUtilizationMetrics {
-    private final RestTemplate ec2RestTemplate;
-    private final MetricsProps metricsProps;
-
-    public HeapUtilizationMetrics(MeterRegistry registry, MetricsProps metricsProps) {
-        this.ec2RestTemplate = new RestTemplate();
-        this.metricsProps = metricsProps;
+    public HeapUtilizationMetrics(MeterRegistry registry) {
         registry.gauge(
                 "HeapUtilization",
-                Tags.concat(Collections.emptyList(), "InstanceId", getInstanceId()),
+                Tags.concat(Collections.emptyList(), "InstanceId", EC2MetadataUtils.getInstanceId()),
                 this,
                 HeapUtilizationMetrics::invoke);
     }
@@ -32,9 +26,5 @@ public class HeapUtilizationMetrics {
         long max = memoryMXBean.getHeapMemoryUsage().getMax();
         long used = memoryMXBean.getHeapMemoryUsage().getUsed();
         return used * 100 / max;
-    }
-
-    private String getInstanceId() {
-        return ec2RestTemplate.getForObject(metricsProps.getMetaDataUrl() + "/instance-id", String.class);
     }
 }

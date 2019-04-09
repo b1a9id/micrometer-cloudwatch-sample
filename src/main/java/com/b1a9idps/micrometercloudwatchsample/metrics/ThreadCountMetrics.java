@@ -5,24 +5,18 @@ import java.lang.management.ThreadMXBean;
 import java.util.Collections;
 
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestTemplate;
 
-import com.b1a9idps.micrometercloudwatchsample.metrics.props.MetricsProps;
+import com.amazonaws.util.EC2MetadataUtils;
 
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tags;
 
 @Component
 public class ThreadCountMetrics {
-    private final RestTemplate ec2RestTemplate;
-    private final MetricsProps metricsProps;
-
-    public ThreadCountMetrics(MeterRegistry registry, MetricsProps metricsProps) {
-        this.ec2RestTemplate = new RestTemplate();
-        this.metricsProps = metricsProps;
+    public ThreadCountMetrics(MeterRegistry registry) {
         registry.gauge(
                 "ThreadCount",
-                Tags.concat(Collections.emptyList(), "InstanceId", getInstanceId()),
+                Tags.concat(Collections.emptyList(), "InstanceId", EC2MetadataUtils.getInstanceId()),
                 this,
                 ThreadCountMetrics::invoke);
     }
@@ -30,9 +24,5 @@ public class ThreadCountMetrics {
     private Integer invoke() {
         ThreadMXBean threadBean = ManagementFactory.getThreadMXBean();
         return threadBean.getThreadCount();
-    }
-
-    private String getInstanceId() {
-        return ec2RestTemplate.getForObject(metricsProps.getMetaDataUrl() + "/instance-id", String.class);
     }
 }

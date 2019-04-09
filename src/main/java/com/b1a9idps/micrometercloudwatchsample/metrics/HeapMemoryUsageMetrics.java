@@ -4,25 +4,21 @@ import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
 import java.util.Collections;
 
+import org.springframework.cloud.aws.context.annotation.ConditionalOnAwsCloudEnvironment;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestTemplate;
 
-import com.b1a9idps.micrometercloudwatchsample.metrics.props.MetricsProps;
+import com.amazonaws.util.EC2MetadataUtils;
 
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tags;
 
+@ConditionalOnAwsCloudEnvironment
 @Component
 public class HeapMemoryUsageMetrics {
-    private final RestTemplate ec2RestTemplate;
-    private final MetricsProps metricsProps;
-
-    public HeapMemoryUsageMetrics(MeterRegistry registry, MetricsProps metricsProps) {
-        this.ec2RestTemplate = new RestTemplate();
-        this.metricsProps = metricsProps;
+    public HeapMemoryUsageMetrics(MeterRegistry registry) {
         registry.gauge(
                 "HeapMemoryUsage",
-                Tags.concat(Collections.emptyList(), "InstanceId", getInstanceId()),
+                Tags.concat(Collections.emptyList(), "InstanceId", EC2MetadataUtils.getInstanceId()),
                 this,
                 HeapMemoryUsageMetrics::invoke);
     }
@@ -30,9 +26,5 @@ public class HeapMemoryUsageMetrics {
     private Long invoke() {
         MemoryMXBean memoryMXBean = ManagementFactory.getMemoryMXBean();
         return memoryMXBean.getHeapMemoryUsage().getUsed();
-    }
-
-    private String getInstanceId() {
-        return ec2RestTemplate.getForObject(metricsProps.getMetaDataUrl() + "/instance-id", String.class);
     }
 }
