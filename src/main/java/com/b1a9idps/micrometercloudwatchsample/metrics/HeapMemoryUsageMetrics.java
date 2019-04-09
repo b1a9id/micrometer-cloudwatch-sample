@@ -1,13 +1,9 @@
 package com.b1a9idps.micrometercloudwatchsample.metrics;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
+import java.lang.management.ManagementFactory;
+import java.lang.management.MemoryMXBean;
 import java.util.Collections;
-import java.util.function.DoubleUnaryOperator;
 
-import javax.swing.plaf.synth.Region;
-
-import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
@@ -31,12 +27,9 @@ public class HeapMemoryUsageMetrics {
                 HeapMemoryUsageMetrics::invoke);
     }
 
-    private Double invoke() {
-        Runtime runtime = Runtime.getRuntime();
-        long freeMemorySize = runtime.freeMemory() / 1024;
-        long totalMemorySize = runtime.totalMemory() / 1024;
-        long usedMemorySize = totalMemorySize - freeMemorySize;
-        return (double) usedMemorySize;
+    private Long invoke() {
+        MemoryMXBean memoryMXBean = ManagementFactory.getMemoryMXBean();
+        return memoryMXBean.getHeapMemoryUsage().getUsed();
     }
 
     private String getInstanceId() {
