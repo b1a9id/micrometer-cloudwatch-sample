@@ -2,25 +2,23 @@ package com.b1a9idps.micrometercloudwatchsample.metrics;
 
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
-import java.util.Collections;
 
 import org.springframework.cloud.aws.context.annotation.ConditionalOnAwsCloudEnvironment;
 import org.springframework.stereotype.Component;
 
 import com.amazonaws.util.EC2MetadataUtils;
 
+import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.Tags;
 
 @ConditionalOnAwsCloudEnvironment
 @Component
 public class HeapUtilizationMetrics {
     public HeapUtilizationMetrics(MeterRegistry registry) {
-        registry.gauge(
-                "HeapUtilization",
-                Tags.concat(Collections.emptyList(), "InstanceId", EC2MetadataUtils.getInstanceId()),
-                this,
-                HeapUtilizationMetrics::invoke);
+        Gauge.builder("HeapUtilization", this, HeapUtilizationMetrics::invoke)
+                .tag("InstanceId", EC2MetadataUtils.getInstanceId())
+                .baseUnit("Percent")
+                .register(registry);
     }
 
     private Long invoke() {
