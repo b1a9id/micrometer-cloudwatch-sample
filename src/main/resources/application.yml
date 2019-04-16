@@ -19,7 +19,6 @@ management:
       cloudwatch:
         namespace: Micrometer/test4
         enabled: true
-        batch-size: 20
         step: 1s
 cloud:
   aws:
